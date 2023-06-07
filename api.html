@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reproducir Video con Media SourceI</title>
+  <style>
+    #videoPlayer {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Reproducir Video</h1>
+
+  <div id="videoContainer">
+    <video id="videoPlayer" controls>
+      Your browser does not support the video tag.
+    </video>
+    <div id="controls">
+      <button id="playBtn">Reproducir</button>
+      <button id="pauseBtn">Pausa</button>
+      <button id="volumeUpBtn">Subir Volumen</button>
+      <button id="volumeDownBtn">Bajar Volumen</button>
+    </div>
+  </div>
+
+  <script>
+    var videoPlayer = document.getElementById('videoPlayer');
+    var playBtn = document.getElementById('playBtn');
+    var pauseBtn = document.getElementById('pauseBtn');
+    var volumeUpBtn = document.getElementById('volumeUpBtn');
+    var volumeDownBtn = document.getElementById('volumeDownBtn');
+
+    playBtn.addEventListener('click', function() {
+      videoPlayer.play();
+    });
+
+    pauseBtn.addEventListener('click', function() {
+      videoPlayer.pause();
+    });
+
+    volumeUpBtn.addEventListener('click', function() {
+      if (videoPlayer.volume < 1) {
+        videoPlayer.volume += 0.1;
+      }
+    });
+
+    volumeDownBtn.addEventListener('click', function() {
+      if (videoPlayer.volume > 0) {
+        videoPlayer.volume -= 0.1;
+      }
+    });
+
+    function loadVideo() {
+      var videoSource = 'video.mp4';
+
+      if ('MediaSource' in window && MediaSource.isTypeSupported(src='video/mp4')) {
+        var mediaSource = new MediaSource();
+        videoPlayer.src = URL.createObjectURL(mediaSource);
+
+        mediaSource.addEventListener('sourceopen', function() {
+          var sourceBuffer = mediaSource.addSourceBuffer(src='video/mp4');
+
+          fetch(videoSource)
+            .then(function(response) {
+              return response.arrayBuffer();
+            })
+            .then(function(videoData) {
+              sourceBuffer.addEventListener('updateend', function() {
+                mediaSource.endOfStream();
+              });
+
+              sourceBuffer.appendBuffer(videoData);
+            })
+            .catch(function(error) {
+              console.error('Error al cargar el archivo:', error);
+            });
+        });
+      } else {
+        console.error('El navegador no soporta este API.');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadVideo);
+  </script>
+</body>
+</html>
